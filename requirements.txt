@@ -3,6 +3,6 @@ pandas
 numpy
 scikit-learn
 xgboost
-pulp
+pulp>=2.7.0
 plotly
 joblib

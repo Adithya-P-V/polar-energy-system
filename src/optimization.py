@@ -60,8 +60,9 @@ class EnergyOptimizer:
         prob = pulp.LpProblem("PolarStationEnergyOptimization", pulp.LpMinimize)
         
         # Decision Variables
-        S_used = [pulp.LpVariable(f"S_used_{t}", 0, solar_forecast_kw[t]) for t in range(T)]
-        W_used = [pulp.LpVariable(f"W_used_{t}", 0, wind_forecast_kw[t]) for t in range(T)]
+        # Guard: upBound must be > 0 to avoid TypeError in some PuLP versions
+        S_used = [pulp.LpVariable(f"S_used_{t}", 0, max(float(solar_forecast_kw[t]), 0.001)) for t in range(T)]
+        W_used = [pulp.LpVariable(f"W_used_{t}", 0, max(float(wind_forecast_kw[t]), 0.001)) for t in range(T)]
         
         P_chg = [pulp.LpVariable(f"P_chg_{t}", 0, self.max_chg) for t in range(T)]
         P_dis = [pulp.LpVariable(f"P_dis_{t}", 0, self.max_dis) for t in range(T)]
@@ -77,9 +78,9 @@ class EnergyOptimizer:
         L_imp = [0.30 * load_forecast_kw[t] for t in range(T)]
         L_noncrit = [0.20 * load_forecast_kw[t] for t in range(T)]
         
-        Shed_crit = [pulp.LpVariable(f"Shed_crit_{t}", 0, L_crit[t]) for t in range(T)]
-        Shed_imp = [pulp.LpVariable(f"Shed_imp_{t}", 0, L_imp[t]) for t in range(T)]
-        Shed_noncrit = [pulp.LpVariable(f"Shed_noncrit_{t}", 0, L_noncrit[t]) for t in range(T)]
+        Shed_crit = [pulp.LpVariable(f"Shed_crit_{t}", 0, max(float(L_crit[t]), 0.001)) for t in range(T)]
+        Shed_imp = [pulp.LpVariable(f"Shed_imp_{t}", 0, max(float(L_imp[t]), 0.001)) for t in range(T)]
+        Shed_noncrit = [pulp.LpVariable(f"Shed_noncrit_{t}", 0, max(float(L_noncrit[t]), 0.001)) for t in range(T)]
         
         # Objective Function
         objective_terms = []
