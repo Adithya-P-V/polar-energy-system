@@ -104,8 +104,11 @@ class EnergyOptimizer:
             prob += (D_gen[t] >= self.diesel_min * u_diesel[t]), f"DieselMin_{t}"
             prob += (D_gen[t] <= self.diesel_max * u_diesel[t]), f"DieselMax_{t}"
             
-            # 3. Dynamic SoC update
-            soc_change = ((P_chg[t] * self.eta - P_dis[t] / self.eta) / self.b_cap) * 100.0
+            # 3. Dynamic SoC update — avoid division on LpExpressions (not supported in PuLP 3.x)
+            # soc_change = (P_chg * eta - P_dis / eta) / b_cap * 100
+            eta_inv = 1.0 / self.eta
+            cap_scale = 100.0 / self.b_cap
+            soc_change = (P_chg[t] * self.eta - P_dis[t] * eta_inv) * cap_scale
             if t == 0:
                 prob += (SoC[t] == initial_soc + soc_change), f"SoC_Update_{t}"
             else:
